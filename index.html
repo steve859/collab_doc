@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Stock Price</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        #stock-price {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #0066cc;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background-color 0.5s ease;
+        }
+
+        .highlight {
+            background-color: #ffff99;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .online {
+            color: green;
+        }
+
+        .offline {
+            color: red;
+        }
+
+        .history {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .history-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Real-time Stock Price Monitor</h1>
+        <p>Current AAPL Stock Price:</p>
+        <div id="stock-price">Loading...</div>
+
+        <div id="connection-status" class="status">
+            Connecting to server...
+        </div>
+
+        <div class="history">
+            <h3>Price History</h3>
+            <div id="price-history"></div>
+        </div>
+    </div>
+
+    <script src="client.js"></script>
+    <script>
+        // Update connection status display
+        const connectionStatus = document.getElementById('connection-status');
+        const priceHistory = document.getElementById('price-history');
+
+        // Extend the WebSocket handlers
+        socket.onopen = (event) => {
+            console.log('Connected to WebSocket server');
+            connectionStatus.textContent = 'Connected to server';
+            connectionStatus.className = 'status online';
+            socket.send('Hello, WebSocket Server!');
+        };
+
+        socket.onclose = (event) => {
+            console.log('Disconnected from WebSocket server');
+            connectionStatus.textContent = 'Disconnected from server';
+            connectionStatus.className = 'status offline';
+        };
+
+        // Add to the updateStockDisplay function to record history
+        const originalUpdateStockDisplay = window.updateStockDisplay;
+        window.updateStockDisplay = function (stockData) {
+            // Call the original function
+            originalUpdateStockDisplay(stockData);
+
+            // Add to history
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.textContent = `${timeString} - ${stockData}`;
+
+            // Add to the beginning of history
+            priceHistory.insertBefore(historyItem, priceHistory.firstChild);
+
+            // Limit history items
+            if (priceHistory.children.length > 10) {
+                priceHistory.removeChild(priceHistory.lastChild);
+            }
+        };
+    </script>
+</body>
+
+</html>
