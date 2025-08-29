@@ -1,15 +1,19 @@
 const WebSocket = require('ws');
 const uuid = require('uuid');
 const uuidv4 = uuid.v4;
+const { MessageShema } = require("./schemas")
 
 
 const wss = new WebSocket.Server({ port: 8080 });
 const clients = new Map();
+const documents = new Map();
+
+const messages = ['greeting', 'join_document', 'leave_document', 'edit', 'cursor_position', 'lock_request', 'unlock_request'];
 
 wss.on('connection', (ws) => {
     //console.log("New client connected");
     const clientId = uuidv4();
-    clients.set(clientId, ws);
+    clients.set(clientId, { ws, activeDocument: null });
     console.log(`New client connected: ${clientId}`);
     logClients();
     ws.send(JSON.stringify({
@@ -20,9 +24,41 @@ wss.on('connection', (ws) => {
 
     ws.on('message', (message) => {
         try {
-            const data = JSON.parse(message);
-            console.log(`Message from ${clientId}`, data);
-            broadcast(clientId, data);
+            const rawData = JSON.parse(message);
+            const data = MessageShema.parse(rawData);
+            console.log(`Message from ${clientId}: `, data);
+            switch (data.type) {
+                case "greeting":
+                    console.log(`Client ${clientId} says hello: ${data.message}`);
+                    break;
+
+                case "join_document":
+                    handleJoinDocument(clientId, data.documentId);
+                    break;
+
+                case "leave_document":
+                    handleLeaveDocument(clientId);
+                    break;
+
+                case "edit":
+                    handleEdit(clientId, data.change);
+                    break;
+
+                case "cursor_position":
+                    handleCursorPosition(clientId, data.position);
+                    break;
+
+                case "lock_request":
+                    handleLockRequest(clientId, data.section);
+                    break;
+
+                case "unlock_request":
+                    handleUnlockRequest(clientId, data.section);
+                    break;
+
+                default:
+                    console.warn("Unknown message type:", data.type);
+            }
         }
         catch (err) {
             console.error("Error parsing message",)
@@ -51,14 +87,29 @@ function logClients() {
     console.log([...clients.keys()]);
 }
 
-setInterval(() => {
-    const stockPrice = (Math.random() * 100).toFixed(2); // Generate a random stock price
 
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ stock: `AAPL: $${stockPrice}` }));
-        }
-    });
-}, 5000); // Send updates every 5 seconds
+function handleJoinDocument() {
+
+}
+
+function handleLeaveDocument() {
+
+}
+
+function handleEdit() {
+
+}
+
+function handleCursorPosition() {
+
+}
+
+function handleLockRequest() {
+
+}
+
+function handleUnlockRequest() {
+
+}
 
 console.log("Websocket server is running on ws://localhost:8080");

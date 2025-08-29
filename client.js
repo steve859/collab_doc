@@ -34,10 +34,15 @@ function updateStockDisplay(stockData) {
 // Send a message to the server
 socket.onopen = () => {
     console.log('Connected to WebSocket server');
-    socket.send('Hello, WebSocket Server!');
+    socket.send(JSON.stringify({
+        type: 'greeting',
+        message: 'Hello Websocket server!'
+    }));
 };
 
 // Handle connection close
 socket.onclose = () => {
     console.log('Disconnected from WebSocket server');
 };
+
+
