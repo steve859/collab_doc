@@ -1,7 +1,8 @@
 const WebSocket = require('ws');
 const uuid = require('uuid');
 const uuidv4 = uuid.v4;
-const { MessageShema } = require("./schemas")
+const { MessageSchema } = require("./schemas");
+const client = require('./database/connection');
 
 
 const wss = new WebSocket.Server({ port: 8080 });
@@ -87,9 +88,13 @@ function logClients() {
     console.log([...clients.keys()]);
 }
 
-
 function handleJoinDocument() {
+    const clientInfo = clients.get(clientId);
 
+    if (!clientInfo) {
+        console.error(`Client ${clientId} not found`);
+        return;
+    }
 }
 
 function handleLeaveDocument() {
