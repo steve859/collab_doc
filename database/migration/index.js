@@ -30,15 +30,42 @@ async function getCurrentSchemaVersion() {
 /**
  *
  *
- * @param {*} version
- * @return {*} 
+ * @param {number} version
+ * @return {Promise<boolean>} 
  */
 async function updateSchemaVersion(version) {
-    return 1;
+    try {
+        await client.execute(
+            'UPDATE schema_version SET version = ?, last_migration = ? WHERE key = ?',
+            [version, new Date(), 'schema']
+        );
+        logger.info(`Schema version updated to ${version}`);
+        return true;
+    } catch (error) {
+        logger.error(`Error updating schema version to ${version}:`, error);
+        return false;
+    }
 }
 
-async function runMigration() {
+const migrations = [
+    require('./001_initial')
+]
 
+/**
+ *
+ * @return {Promise<boolean>}
+ */
+async function runMigrations() {
+    try {
+        const currentVersion = await getCurrentSchemaVersion();
+        logger.info(`Current schema version : ${currentVersion}`);
+        for (let i = currentVersion; i < migrations.length; i++) {
+            const migration = migrations[i];
+            const targetVersion = i + 1;
+        }
+    } catch (err) {
+
+    }
 }
 
 module.exports = {
