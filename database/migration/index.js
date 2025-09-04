@@ -62,14 +62,27 @@ async function runMigrations() {
         for (let i = currentVersion; i < migrations.length; i++) {
             const migration = migrations[i];
             const targetVersion = i + 1;
+            logger.info(`Running migration to version ${targetVersion}:`, migration.description);
+            try {
+                await migration.up();
+                await updateSchemaVersion(targetVersion);
+                logger.info(`Successfully migrated to version ${targetVersion}`);
+            } catch (err) {
+                logger.error(`Migration to version ${targetVersion} failed`, err);
+                return false;
+            }
         }
-    } catch (err) {
+        return true;
 
+    } catch (err) {
+        logger.error('Error running migration:', err);
+        return false;
     }
+
 }
 
 module.exports = {
     getCurrentSchemaVersion,
     updateSchemaVersion,
-    runMigration
+    runMigrations
 }
